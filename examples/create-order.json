@@ -1,0 +1,10 @@
+{
+  "customer_id": "cus_1001",
+  "currency": "USD",
+  "items": [
+    {
+      "product_id": "prod_2001",
+      "quantity": 5
+    }
+  ]
+}
