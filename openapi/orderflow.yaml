@@ -1,0 +1,232 @@
+openapi: 3.0.3
+info:
+  title: OrderFlow API
+  version: 1.2.0
+  description: |
+    Fictional B2B SaaS order-management API created as a technical-writing
+    portfolio and learning project.
+servers:
+  - url: https://api.example.com/v1
+security:
+  - bearerAuth: []
+paths:
+  /customers:
+    get:
+      summary: List customers
+      operationId: listCustomers
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            maximum: 100
+            default: 20
+        - in: query
+          name: cursor
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, inactive]
+      responses:
+        '200':
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerList'
+    post:
+      summary: Create customer
+      operationId: createCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomer'
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+  /customers/{customer_id}:
+    get:
+      summary: Get customer
+      operationId: getCustomer
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update customer
+      operationId: updateCustomer
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomer'
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+    delete:
+      summary: Delete customer
+      operationId: deleteCustomer
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '204':
+          description: Customer deleted
+  /orders:
+    post:
+      summary: Create order
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+  /orders/{order_id}:
+    get:
+      summary: Get order
+      operationId: getOrder
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+  /orders/{order_id}/cancel:
+    post:
+      summary: Cancel order
+      operationId: cancelOrder
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    CustomerId:
+      in: path
+      name: customer_id
+      required: true
+      schema:
+        type: string
+    OrderId:
+      in: path
+      name: order_id
+      required: true
+      schema:
+        type: string
+  responses:
+    NotFound:
+      description: Resource not found
+  schemas:
+    Customer:
+      type: object
+      required: [id, name, email, status]
+      properties:
+        id:
+          type: string
+          example: cus_1001
+        name:
+          type: string
+          example: Acme Manufacturing
+        email:
+          type: string
+          format: email
+          example: orders@example.com
+        status:
+          type: string
+          enum: [active, inactive]
+    CustomerList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
+        next_cursor:
+          type: string
+    CreateCustomer:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+    CreateOrder:
+      type: object
+      required: [customer_id, currency, items]
+      properties:
+        customer_id:
+          type: string
+        currency:
+          type: string
+          example: USD
+        items:
+          type: array
+          items:
+            type: object
+            required: [product_id, quantity]
+            properties:
+              product_id:
+                type: string
+              quantity:
+                type: integer
+                minimum: 1
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          example: ord_5001
+        customer_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, fulfilled, cancelled]
+        currency:
+          type: string
+        total:
+          type: number
+          format: double
